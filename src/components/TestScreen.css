@@ -1,0 +1,294 @@
+:root {
+    --primary-color: #b6a6ca;
+    --secondary-color: #cfe2f4;
+    --accent-color: #e7bbd6;
+    --correct-color: #c1d3b6;
+    --button-color: #b7d1eb;
+    --modal-button-color: #FFA726;
+  }
+  
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+  }
+  
+  .test-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('../assets/images/bg_new_2.jpg');
+    background-size: cover;
+    background-position: center;
+    padding: 20px;
+  }
+  
+  .banner {
+    width: 100%;
+    padding: 15px 0;
+    background-color: var(--primary-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  
+  .banner h1 {
+    font-size: 36px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    font-family: 'Fredoka', sans-serif;
+  }
+  
+  .video-container {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+  }
+  
+  .video {
+    min-width: 97%;
+    aspect-ratio: 16 / 9;
+    border: 10px solid var(--secondary-color);
+    background-color: #000;
+  }
+  
+  .image-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 40px;
+  }
+  
+  .image-wrapper {
+    width: calc(33.33% - 20px);
+    aspect-ratio: 1;
+    margin-bottom: 20px;
+    border: 5px solid var(--accent-color);
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    transition: all 0.3s ease;
+  }
+  
+  .image-wrapper.correct {
+    border-color: var(--correct-color);
+    opacity: 0.5;
+  }
+  
+  .image-button {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  
+  .image-button:disabled {
+    cursor: not-allowed;
+  }
+  
+  .option-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .feedback-animation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: popIn 0.5s ease-out;
+    z-index: 1001; /* Ensure it's above the animation overlay */
+  }
+  
+  @keyframes popIn {
+    0% { transform: translate(-50%, -50%) scale(0); }
+    70% { transform: translate(-50%, -50%) scale(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .animation-overlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+    overflow: hidden; /* Ensure the animation doesn't cause scrollbars */
+  }
+  
+  .tester-buttons-container {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 10px;
+    margin-bottom: 40px;
+  }
+  
+  .tester-button {
+    background-color: var(--button-color);
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 20px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    min-width: 100px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    font-family: 'Fredoka', sans-serif;
+  }
+  
+  .tester-button:hover {
+    background-color: #a0c0da;
+  }
+  
+  .modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-container {
+    width: 70%;
+    max-width: 500px;
+    background-color: #FFF;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-message {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Fredoka', sans-serif;
+  }
+  
+  .modal-button {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: var(--modal-button-color);
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Fredoka', sans-serif;
+  }
+  
+  .modal-button:hover {
+    background-color: #FF9100;
+  }
+  
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #F8F9FA;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #fff;
+    padding: 20px;
+  }
+  
+  .error-text {
+    font-size: 18px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Fredoka', sans-serif;
+  }
+  
+  .retry-button {
+    background-color: var(--modal-button-color);
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .retry-button:hover {
+    background-color: #FF9100;
+  }
+
+  /* Add these styles to your existing TestScreen.css file if not already present */
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: var(--button-color);
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-button:hover {
+  background-color: #a0c0da;
+}

@@ -1,26 +1,38 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import FamiliarizationScreen from './components/FamiliarizationScreen';
+import StartScreen from './components/StartScreen';
+import Backendless from 'backendless';
+import TestScreen from './components/TestScreen';
 
-function App() {
+// Backendless app configuration
+const APP_ID = 'E9332BC5-C922-4110-BB95-C9D84866DB8F';
+const API_KEY = '323C0F02-71BF-4134-BD72-7A037B8C64C6';
+
+Backendless.initApp(APP_ID, API_KEY);
+
+// Function to check if the device is an iPad
+const isIpad = () => {
+  return true;
+  return /iPad/.test(navigator.userAgent);
+};
+
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      {isIpad() ? (
+        <Routes>
+          <Route path="/" element={<StartScreen />} />
+          <Route path="/familiarization" element={<FamiliarizationScreen />} />
+          <Route path="/test" element={<TestScreen />} />
+        </Routes>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <h1>This app is only available on iPads.</h1>
+        </div>
+      )}
+    </Router>
   );
-}
+};
 
 export default App;
