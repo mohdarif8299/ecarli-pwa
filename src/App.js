@@ -13,7 +13,6 @@ Backendless.initApp(APP_ID, API_KEY);
 
 // Function to check if the device is an iPad
 const isIpad = () => {
-  return true;
   return /iPad/.test(navigator.userAgent);
 };
 
