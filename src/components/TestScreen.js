@@ -24,6 +24,9 @@ const TestScreen = () => {
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState(null);
     const [isReloading, setIsReloading] = useState(false);
+    const [showNextPromptConfirm, setShowNextPromptConfirm] = useState(false);
+    const [showNextItemConfirm, setShowNextItemConfirm] = useState(false);
+    const [showEndTestingConfirm, setShowEndTestingConfirm] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const data = location.state;
@@ -42,6 +45,24 @@ const TestScreen = () => {
         rendererSettings: {
             preserveAspectRatio: 'xMidYMax slice'
         }
+    };
+
+    useEffect(() => {
+        if (!data || !data.assessor || !data.childReference) {
+            setShowCustomAlert({
+                visible: true,
+                message: "Please enter both the Child Reference and Assessor's name before starting the test.",
+                onConfirm: () => {
+                    setShowCustomAlert({ visible: false });
+                    navigate('/');
+                }
+            });
+        }
+    }, []);
+
+    // Add a validation check function
+    const validateData = () => {
+        return data && data.assessor && data.childReference;
     };
 
     useEffect(() => {
@@ -111,6 +132,12 @@ const TestScreen = () => {
 
     const fetchTestItems = async () => {
         try {
+
+            if (!validateData()) {
+                // If data is invalid, don't proceed with fetching
+                return;
+            }
+
             console.log('Fetching test items', data);
             setIsLoading(true);
             setError(null);
@@ -235,9 +262,17 @@ const TestScreen = () => {
         newScore[currentItem] = 3 - attempts;
         setScore(newScore);
 
-        setTimeout(() => {
-            handleNextItem();
-        }, 3000);
+        // For the last item, wait for the animation and then end testing
+        if (currentItem === testItems.length - 1) {
+            setTimeout(async () => {
+                await endTesting();
+            }, 3000);
+        } else {
+            // For other items, proceed as normal
+            setTimeout(() => {
+                handleNextItem();
+            }, 3000);
+        }
     };
 
     const handleIncorrectAnswer = (index) => {
@@ -274,7 +309,25 @@ const TestScreen = () => {
 
     const endTesting = async () => {
         try {
-            await saveScoreToBackendless(score);
+            const finalScore = [...score];
+            finalScore[currentItem] = 3 - attempts; // Ensure the last score is included
+
+            const currentDate = new Date();
+            const assessmentData = {
+                childReference: data.childReference,
+                assessor: data.assessor,
+                date: currentDate.toISOString().split('T')[0],
+                time: currentDate.toTimeString().split(' ')[0],
+                ...finalScore.reduce((acc, score, index) => {
+                    acc[`scoreItem${index + 1}`] = score;
+                    return acc;
+                }, {}),
+                totalScore: finalScore.reduce((a, b) => a + b, 0),
+            };
+
+            await Backendless.Data.of('Assessments').save(assessmentData);
+            console.log('Assessment data saved successfully', assessmentData);
+
             setShowCustomAlert({
                 visible: true,
                 message: 'Test completed and data saved successfully!',
@@ -290,8 +343,31 @@ const TestScreen = () => {
         }
     };
 
+
+    // Add these confirmation handler functions:
+    const handleConfirmNextPrompt = () => {
+        setShowNextPromptConfirm(false);
+        proceedToNextItem();
+    };
+
+    const handleConfirmNextItem = () => {
+        setShowNextItemConfirm(false);
+        handleNextItem();
+    };
+
+    const handleConfirmEndTesting = () => {
+        setShowEndTestingConfirm(false);
+        const finalScore = [...score];
+        if (selectedOption === testItems[currentItem]?.correctIndex) {
+            finalScore[currentItem] = 3 - attempts;
+        }
+        endTesting();
+    };
+
+
+    // Update the handleTesterButton function:
     const handleTesterButton = (action) => {
-        if (selectedOption === null && action !== 'endTesting') {
+        if (selectedOption === null && action === 'nextItem') {
             setShowCustomAlert({
                 visible: true,
                 message: 'Please select an option before proceeding.',
@@ -302,14 +378,14 @@ const TestScreen = () => {
 
         switch (action) {
             case 'nextPrompt':
-                replayVideo();
+                setShowNextPromptConfirm(true);
                 break;
             case 'nextItem':
-                handleNextItem();
+                setShowNextItemConfirm(true);
                 break;
             case 'endTesting':
                 if (currentItem === testItems.length - 1 || score.some(s => s > 0)) {
-                    endTesting();
+                    setShowEndTestingConfirm(true);
                 } else {
                     setShowCustomAlert({
                         visible: true,
@@ -462,6 +538,74 @@ const TestScreen = () => {
                         >
                             OK
                         </button>
+                    </div>
+                </div>
+            )}
+            {showNextPromptConfirm && (
+                <div className="modal-background">
+                    <div className="modal-container">
+                        <h2 className="modal-title">Confirm Next Prompt</h2>
+                        <p className="modal-message">Are you sure you want to proceed to the next prompt?</p>
+                        <div className="modal-buttons">
+                            <button
+                                className="modal-button cancel"
+                                onClick={() => setShowNextPromptConfirm(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="modal-button confirm"
+                                onClick={handleConfirmNextPrompt}
+                            >
+                                Proceed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showNextItemConfirm && (
+                <div className="modal-background">
+                    <div className="modal-container">
+                        <h2 className="modal-title">Confirm Next Item</h2>
+                        <p className="modal-message">Are you sure you want to move to the next item?</p>
+                        <div className="modal-buttons">
+                            <button
+                                className="modal-button cancel"
+                                onClick={() => setShowNextItemConfirm(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="modal-button confirm"
+                                onClick={handleConfirmNextItem}
+                            >
+                                Proceed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showEndTestingConfirm && (
+                <div className="modal-background">
+                    <div className="modal-container">
+                        <h2 className="modal-title">Confirm End Testing</h2>
+                        <p className="modal-message">Are you sure you want to end the test? This action cannot be undone.</p>
+                        <div className="modal-buttons">
+                            <button
+                                className="modal-button cancel"
+                                onClick={() => setShowEndTestingConfirm(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="modal-button confirm"
+                                onClick={handleConfirmEndTesting}
+                            >
+                                End Test
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
