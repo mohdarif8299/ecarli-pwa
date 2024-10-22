@@ -12,6 +12,7 @@
     margin: 0;
     padding: 0;
     justify-content: center;
+    overflow: hidden;
   }
   
   .test-screen {
@@ -23,8 +24,10 @@
     background-size: cover;
     background-position: center;
     padding: 20px;
+    overflow: hidden !important;
   }
-  
+
+
   .banner {
     width: 100%;
     padding: 15px 0;
@@ -291,4 +294,47 @@
 
 .modal-button:hover {
   background-color: #a0c0da;
+}
+
+@media screen and (orientation: landscape) {
+  body {
+      overflow-y: auto;
+  }
+
+  .banner {
+    width: 70%;
+  }
+  .test-screen {
+      height: auto;
+      max-height: 1050vh;
+  }
+
+  .video-container {
+      width: 100% !important;
+  }
+}
+
+/* Adjust modal for landscape */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .modal-container {
+      max-height: 80vh;
+      overflow-y: auto;
+  }
+}
+
+/* Ensure content doesn't overflow in extreme aspect ratios */
+@media screen and (max-aspect-ratio: 2/3), screen and (min-aspect-ratio: 3/2) {
+  .test-screen {
+      min-height: auto;
+      height: auto;
+  }
+}
+
+/* Adjust loading and error containers for landscape */
+@media screen and (orientation: landscape) {
+  .loading-container,
+  .error-container {
+      height: auto;
+      min-height: 100vh;
+  }
 }

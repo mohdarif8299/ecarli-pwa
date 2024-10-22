@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate, useLocation, useBeforeUnload,useBlocker } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Backendless from 'backendless';
 import "./TestScreen.css";
 import Lottie from 'react-lottie';
@@ -23,9 +23,12 @@ const TestScreen = () => {
     const [testItems, setTestItems] = useState([]);
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState(null);
+    const [isReloading, setIsReloading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const data = location.state;
+
+    const [hasStarted, setHasStarted] = useState(false);
 
     const videoRef = useRef(null);
 
@@ -40,6 +43,71 @@ const TestScreen = () => {
             preserveAspectRatio: 'xMidYMax slice'
         }
     };
+
+    useEffect(() => {
+        if (attempts > 0 || selectedOption !== null || score.some(s => s > 0)) {
+            setHasStarted(true);
+        }
+    }, [attempts, selectedOption, score]);
+
+    // Handle browser reload/close and back button
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (hasStarted) {
+                e.preventDefault();
+                e.returnValue = '';
+                setIsReloading(true);
+                return '';
+            }
+        };
+
+        const handlePopState = (e) => {
+            if (hasStarted) {
+                e.preventDefault();
+                showNavigationWarning(() => navigate(-1));
+                // Push a new entry to prevent immediate navigation
+                window.history.pushState(null, '', window.location.pathname);
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+
+        // Push initial entry to history
+        window.history.pushState(null, '', window.location.pathname);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [hasStarted, navigate]);
+
+    useEffect(() => {
+        if (isReloading) {
+            showNavigationWarning(() => window.location.reload());
+        }
+    }, [isReloading]);
+
+    const showNavigationWarning = (navigationCallback) => {
+        setShowWarningModal(true);
+        setPendingNavigation(() => navigationCallback);
+    };
+    const handleLeavePage = () => {
+        setShowWarningModal(false);
+        setIsReloading(false);
+        if (pendingNavigation) {
+            pendingNavigation();
+        } else {
+            navigate('/');
+        }
+    };
+
+    const handleStayOnPage = () => {
+        setShowWarningModal(false);
+        setIsReloading(false);
+        setPendingNavigation(null);
+    };
+
 
     const fetchTestItems = async () => {
         try {
@@ -72,45 +140,16 @@ const TestScreen = () => {
         }
     };
 
-   
-    useEffect(() => {
-        const handleBeforeUnload = (event) => {
-            event.preventDefault();
-            event.returnValue = '';
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, []);
-
-
-    useEffect(() => {
-        const unblock = navigate((nextLocation) => {
-            if (nextLocation.pathname !== location.pathname) {
-                setShowWarningModal(true);
-                setPendingNavigation(() => () => navigate(nextLocation));
-                return false;
-            }
-            return true;
-        });
-
-        return unblock;
-    }, [navigate, location]);
-
     useEffect(() => {
         fetchTestItems();
     }, []);
+
 
     useEffect(() => {
         if (testItems.length > 0) {
             resetItemState();
         }
     }, [currentItem, testItems]);
-
-   
 
     const handleVideoEnd = () => {
         console.log('Video ended');
@@ -159,7 +198,6 @@ const TestScreen = () => {
 
             await Backendless.Data.of('Assessments').save(assessmentData);
             console.log('Assessment data saved successfully', assessmentData);
-
         } catch (error) {
             console.error('Error saving assessment data:', error);
             throw error;
@@ -220,7 +258,14 @@ const TestScreen = () => {
     const replayVideo = () => {
         if (videoRef.current) {
             videoRef.current.currentTime = 0;
-            videoRef.current.play();
+            videoRef.current.play().catch(error => {
+                console.error('Error playing video:', error);
+                setShowCustomAlert({
+                    visible: true,
+                    message: 'Error playing video. Please try again.',
+                    onConfirm: () => setShowCustomAlert({ ...showCustomAlert, visible: false }),
+                });
+            });
         }
         setIsVideoPlaying(true);
         setIsOptionEnabled(false);
@@ -273,24 +318,10 @@ const TestScreen = () => {
                     });
                 }
                 break;
+            default:
+                console.error('Unknown action:', action);
         }
     };
-
-
-    const handleLeavePage = () => {
-        setShowWarningModal(false);
-        if (pendingNavigation) {
-            pendingNavigation();
-        } else {
-            navigate('/'); // Navigate to the desired route
-        }
-    };
-
-    const handleStayOnPage = () => {
-        setShowWarningModal(false);
-        setPendingNavigation(null);
-    };
-
 
     if (isLoading) {
         return (
@@ -323,14 +354,22 @@ const TestScreen = () => {
                             key={key}
                             src={testItems[currentItem].video}
                             className="video"
-                            controls={false}
+                            playsInline
+                            controls={true}
                             onEnded={handleVideoEnd}
                             onLoadStart={() => {
                                 console.log('Video started loading');
                                 setIsVideoPlaying(true);
                                 setIsOptionEnabled(false);
                             }}
-                            autoPlay
+                            onError={(e) => {
+                                console.error('Video error:', e);
+                                setShowCustomAlert({
+                                    visible: true,
+                                    message: 'Error loading video. Please try again.',
+                                    onConfirm: () => setShowCustomAlert({ ...showCustomAlert, visible: false }),
+                                });
+                            }}
                         />
                     </div>
 
@@ -345,7 +384,19 @@ const TestScreen = () => {
                                     disabled={!isOptionEnabled || optionsDisabled}
                                     className="image-button"
                                 >
-                                    <img src={img} alt={`Option ${index + 1}`} className="option-image" />
+                                    <img
+                                        src={img}
+                                        alt={`Option ${index + 1}`}
+                                        className="option-image"
+                                        onError={() => {
+                                            console.error(`Error loading image for option ${index + 1}`);
+                                            setShowCustomAlert({
+                                                visible: true,
+                                                message: `Error loading image for option ${index + 1}. Please try again.`,
+                                                onConfirm: () => setShowCustomAlert({ ...showCustomAlert, visible: false }),
+                                            });
+                                        }}
+                                    />
                                 </button>
                             </div>
                         ))}
@@ -376,13 +427,23 @@ const TestScreen = () => {
                 </button>
             </div>
 
-            {showWarningModal && (
+            {(showWarningModal || isReloading) && (
                 <div className="modal-background">
                     <div className="modal-container">
-                        <p className="modal-message">Your data might be lost if you leave this page. Are you sure you want to continue?</p>
+                        <p className="modal-message">Your progress will be lost if you leave this page. Are you sure you want to continue?</p>
                         <div className="modal-buttons">
-                            <button className="modal-button" onClick={handleLeavePage}>Yes, leave</button>
-                            <button className="modal-button" onClick={handleStayOnPage}>Stay on this page</button>
+                            <button
+                                className="modal-button cancel"
+                                onClick={handleStayOnPage}
+                            >
+                                Stay on this page
+                            </button>
+                            <button
+                                className="modal-button confirm"
+                                onClick={handleLeavePage}
+                            >
+                                Leave anyway
+                            </button>
                         </div>
                     </div>
                 </div>
