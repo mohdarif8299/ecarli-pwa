@@ -35,8 +35,8 @@ const TestScreen = () => {
 
     const videoRef = useRef(null);
 
-    const APP_ID = 'E9332BC5-C922-4110-BB95-C9D84866DB8F';
-    const API_KEY = '323C0F02-71BF-4134-BD72-7A037B8C64C6';
+    const APP_ID = '22B4C8EB-014E-4AA5-A563-0231CB4187EB';
+    const API_KEY = 'F7FA93E1-42B7-45A6-829C-B4231A720292';
 
     const celebrationsOptions = {
         loop: false,
@@ -134,11 +134,8 @@ const TestScreen = () => {
         try {
 
             if (!validateData()) {
-                // If data is invalid, don't proceed with fetching
                 return;
             }
-
-            console.log('Fetching test items', data);
             setIsLoading(true);
             setError(null);
 
@@ -179,7 +176,6 @@ const TestScreen = () => {
     }, [currentItem, testItems]);
 
     const handleVideoEnd = () => {
-        console.log('Video ended');
         setIsVideoPlaying(false);
         setIsOptionEnabled(true);
     };
@@ -208,52 +204,21 @@ const TestScreen = () => {
         setKey(prevKey => prevKey + 1);
     };
 
-    const saveScoreToBackendless = async (finalScore) => {
-        try {
-            const currentDate = new Date();
-            const assessmentData = {
-                childReference: data.childReference,
-                assessor: data.assessor,
-                date: currentDate.toISOString().split('T')[0],
-                time: currentDate.toTimeString().split(' ')[0],
-                ...finalScore.reduce((acc, score, index) => {
-                    acc[`scoreItem${index + 1}`] = score;
-                    return acc;
-                }, {}),
-                totalScore: finalScore.reduce((a, b) => a + b, 0),
-            };
-
-            await Backendless.Data.of('Assessments').save(assessmentData);
-            console.log('Assessment data saved successfully', assessmentData);
-        } catch (error) {
-            console.error('Error saving assessment data:', error);
-            throw error;
-        }
-    };
-
     const handleItemTouch = (index) => {
-        console.log('Item touched. Index:', index);
-        console.log('isOptionEnabled:', isOptionEnabled);
-        console.log('optionsDisabled:', optionsDisabled);
-
         if (!isOptionEnabled || optionsDisabled) {
-            console.log('Options are not enabled or are disabled');
             return;
         }
 
         setSelectedOption(index);
 
         if (index === testItems[currentItem].correctIndex) {
-            console.log('Correct answer selected');
             handleCorrectAnswer();
         } else {
-            console.log('Incorrect answer selected');
             handleIncorrectAnswer(index);
         }
     };
 
     const handleCorrectAnswer = () => {
-        console.log('Feedback Check');
         setIsCorrect(true);
         setShowFeedback(true);
         setOptionsDisabled(true);
@@ -310,8 +275,10 @@ const TestScreen = () => {
     const endTesting = async () => {
         try {
             const finalScore = [...score];
-            finalScore[currentItem] = 3 - attempts; // Ensure the last score is included
-
+            finalScore[currentItem] = 3 - attempts;
+    
+            console.log('Final Score:', finalScore);
+    
             const currentDate = new Date();
             const assessmentData = {
                 childReference: data.childReference,
@@ -324,10 +291,11 @@ const TestScreen = () => {
                 }, {}),
                 totalScore: finalScore.reduce((a, b) => a + b, 0),
             };
-
+    
+            console.log('Assessment Data:', assessmentData);
+    
             await Backendless.Data.of('Assessments').save(assessmentData);
-            console.log('Assessment data saved successfully', assessmentData);
-
+    
             setShowCustomAlert({
                 visible: true,
                 message: 'Test completed and data saved successfully!',
@@ -343,8 +311,6 @@ const TestScreen = () => {
         }
     };
 
-
-    // Add these confirmation handler functions:
     const handleConfirmNextPrompt = () => {
         setShowNextPromptConfirm(false);
         proceedToNextItem();
@@ -434,7 +400,6 @@ const TestScreen = () => {
                             controls={true}
                             onEnded={handleVideoEnd}
                             onLoadStart={() => {
-                                console.log('Video started loading');
                                 setIsVideoPlaying(true);
                                 setIsOptionEnabled(false);
                             }}

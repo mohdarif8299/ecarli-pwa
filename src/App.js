@@ -1,22 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import FamiliarizationScreen from './components/FamiliarizationScreen';
 import StartScreen from './components/StartScreen';
 import Backendless from 'backendless';
 import TestScreen from './components/TestScreen';
 
-// Backendless app configuration
-const APP_ID = 'E9332BC5-C922-4110-BB95-C9D84866DB8F';
-const API_KEY = '323C0F02-71BF-4134-BD72-7A037B8C64C6';
+const APP_ID = '22B4C8EB-014E-4AA5-A563-0231CB4187EB';
+const API_KEY = 'F7FA93E1-42B7-45A6-829C-B4231A720292';
 
 Backendless.initApp(APP_ID, API_KEY);
 
-// Function to check if the device is an iPad
 const isIpad = () => {
-  return /iPad/.test(navigator.userAgent);
+  const userAgent = navigator.userAgent;
+
+  const isIpad = /iPad/.test(userAgent);
+
+  const isMacSafari = /Macintosh/.test(userAgent) && /Safari/.test(userAgent);
+  const isMobileMode = window.innerWidth <= 1024;
+
+  const isChrome = /Chrome/.test(userAgent);
+  const isChromeMobileMode = window.innerWidth <= 1024;
+
+  return isIpad || (isMacSafari && isMobileMode) || (isChrome && isChromeMobileMode);
 };
 
 const App = () => {
+
   return (
     <Router>
       {isIpad() ? (

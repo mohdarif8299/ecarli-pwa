@@ -13,7 +13,7 @@ const FamiliarizationScreen = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSelectAlert, setShowSelectAlert] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,8 +30,8 @@ const FamiliarizationScreen = () => {
   });
   const data = location.state;
 
-  const APP_ID = 'E9332BC5-C922-4110-BB95-C9D84866DB8F';
-  const API_KEY = '323C0F02-71BF-4134-BD72-7A037B8C64C6';
+  const APP_ID = '22B4C8EB-014E-4AA5-A563-0231CB4187EB';
+  const API_KEY = 'F7FA93E1-42B7-45A6-829C-B4231A720292';
 
   const celebrationsOptions = {
     loop: false,
@@ -94,7 +94,6 @@ const FamiliarizationScreen = () => {
 
   const fetchFamiliarizationItems = async () => {
     try {
-      console.log('Fetching familiarization items', data);
       setIsLoading(true);
       setError(null);
 
@@ -146,14 +145,12 @@ const FamiliarizationScreen = () => {
   }, []);
 
   const handleVideoEnd = () => {
-    console.log('Video ended');
     setIsVideoPlaying(false);
     setOptionsEnabled(true);
     setHasVideoPlayed(true);
   };
 
   const handleVideoPlay = () => {
-    console.log('Video play event triggered');
     setIsVideoPlaying(true);
     setOptionsEnabled(false);
   };
@@ -163,7 +160,6 @@ const FamiliarizationScreen = () => {
   };
 
   const handleVideoPause = () => {
-    console.log('Video pause event triggered');
     setIsVideoPlaying(false);
   };
 
@@ -193,12 +189,9 @@ const FamiliarizationScreen = () => {
 
   const handleItemTouch = (index) => {
     if (!optionsEnabled) return;
-
-    console.log('Item touched. Index:', index);
     setSelectedOption(index);
     
     if (index === familiarizationItems[currentItem].correctIndex) {
-      console.log('Correct option selected');
       setIsCorrect(true);
       setShowFeedback(true);
       setShowAnimation(true);
@@ -212,7 +205,7 @@ const FamiliarizationScreen = () => {
           setIsVideoPlaying(false);
           setSelectedOption(null);
           setIsCorrect(false);
-          setIsMuted(true);
+          setIsMuted(false);
           setHasVideoPlayed(false);
           setOptionsEnabled(false);
         } else {
@@ -220,7 +213,6 @@ const FamiliarizationScreen = () => {
         }
       }, 3000);
     } else {
-      console.log('Incorrect option selected');
       setIsCorrect(false);
       setOptionsEnabled(false);
       
